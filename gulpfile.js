@@ -1,16 +1,39 @@
 const path = require('path');
-const { task, src, dest } = require('gulp');
+const { task, src, dest, parallel } = require('gulp');
+const fs = require('fs');
 
-task('build:icons', copyIcons);
+function getNodeDirs() {
+	const nodesPath = path.resolve('dist', 'nodes');
+	if (!fs.existsSync(nodesPath)) return [];
 
-function copyIcons() {
-	const nodeSource = path.resolve('nodes', '**', '*.{png,svg}');
-	const nodeDestination = path.resolve('dist', 'nodes');
-
-	src(nodeSource).pipe(dest(nodeDestination));
-
-	const credSource = path.resolve('credentials', '**', '*.{png,svg}');
-	const credDestination = path.resolve('dist', 'credentials');
-
-	return src(credSource).pipe(dest(credDestination));
+	return fs
+		.readdirSync(nodesPath, { withFileTypes: true })
+		.filter((dirent) => dirent.isDirectory())
+		.map((dirent) => path.join(nodesPath, dirent.name));
 }
+
+function copyIconsToAllNodes(done) {
+	const source = path.resolve('icons', '*.{png,svg}');
+	const nodeDirs = getNodeDirs();
+
+	if (nodeDirs.length === 0) {
+		console.warn('No node directories found in dist/nodes');
+		return done();
+	}
+
+	const copyTasks = nodeDirs.map((nodeDir) => {
+		return function copyToDir() {
+			return src(source).pipe(dest(nodeDir));
+		};
+	});
+
+	return parallel(...copyTasks)(done);
+}
+
+function copyIconsToCredentials() {
+	const source = path.resolve('icons', '*.{png,svg}');
+	const destination = path.resolve('dist', 'credentials');
+	return src(source).pipe(dest(destination));
+}
+
+task('build:icons', parallel(copyIconsToAllNodes, copyIconsToCredentials));

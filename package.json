@@ -1,26 +1,36 @@
 {
-  "name": "n8n-nodes-<...>",
-  "version": "0.1.0",
-  "description": "",
+  "name": "n8n-nodes-parseur",
+  "version": "0.0.1",
+  "description": "🧩 Official n8n Trigger Node to receive document processing events from [Parseur](https://parseur.com) and automate your workflows.",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "parseur",
+    "parseur.com",
+    "parsuer",
+    "parser",
+    "email parser",
+    "document parser",
+    "webhook",
+    "automation",
+    "workflow automation",
+    "data extraction"
   ],
-  "license": "MIT",
-  "homepage": "",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Parseur Team",
+    "email": "admin@parseur.com"
   },
+  "license": "MIT",
+  "homepage": "http://parseur.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/parseur/parseur-n8n-node"
   },
   "engines": {
     "node": ">=18.10",
     "pnpm": ">=9.1"
   },
   "packageManager": "pnpm@9.1.4",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "tsc && gulp build:icons",
@@ -36,12 +46,11 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/ParseurApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/Parseur/Parseur.node.js",
+      "dist/nodes/Parseur/ParseurTrigger.node.js"
     ]
   },
   "devDependencies": {
