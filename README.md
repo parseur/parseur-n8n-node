@@ -2,7 +2,7 @@
 
 > 🧩 Official n8n Node to interact with [Parseur](https://parseur.com): receive events, upload text or upload files.
 
-[![npm version](https://badge.fury.io/js/parseur-n8n-node.svg)](https://badge.fury.io/js/parseur-n8n-node)
+[![npm version](https://badge.fury.io/js/n8n-nodes-parseur.svg)](https://badge.fury.io/js/n8n-nodes-parseur)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [About](#about)  
