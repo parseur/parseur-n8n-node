@@ -77,14 +77,7 @@ export class ParseurTrigger implements INodeType {
 					},
 				},
 				default: '',
-			},
-			{
-				displayName: 'Debug Mode',
-				name: 'debug',
-				type: 'boolean',
-				default: false,
-				description: 'Whether to enable debug logs (recommended for development)',
-			},
+			}
 		],
 	};
 
@@ -99,11 +92,6 @@ export class ParseurTrigger implements INodeType {
 			 * Return table fields of a parser if a table event is selected.
 			 */
 			getTableFields: async function (this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const debug = this.getNodeParameter('debug', false) as boolean;
-				const log = (msg: string, data?: unknown) => {
-					if (debug) this.logger.debug(`[ParseurTrigger] ${msg}`, data ? { data } : undefined);
-				};
-
 				const parserId = this.getNodeParameter('parserId') as string;
 				const event = this.getNodeParameter('event') as string;
 				const isTable = event.startsWith('table');
@@ -118,8 +106,6 @@ export class ParseurTrigger implements INodeType {
 					value: field.id,
 				}));
 
-				log(`${options.length} table field(s) loaded`, options);
-
 				if (isTable && (!options || options.length === 0)) {
 					throw new NodeApiError(this.getNode(), {
 						message: 'This Mailbox has no table fields configured. Please select another Mailbox or change the event type.',
@@ -132,11 +118,6 @@ export class ParseurTrigger implements INodeType {
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-		const debug = this.getNodeParameter('debug') as boolean;
-		const log = (msg: string, data?: unknown) => {
-			if (debug) this.logger.debug(`[ParseurTrigger] ${msg}`, data ? { data } : undefined);
-		};
-
 		const body = this.getBodyData();
 		const credentials = await this.getCredentials('parseurApi');
 		const receivedToken = this.getHeaderData()['x-parseur-token'];
@@ -144,15 +125,11 @@ export class ParseurTrigger implements INodeType {
 		const expectedToken = credentials.webhookToken;
 		const expectedEvent = this.getNodeParameter('event') as string;
 
-		log('Webhook received', body);
-
 		if (!receivedToken || receivedToken !== expectedToken) {
-			log('Webhook token mismatch', receivedToken);
 			throw new NodeApiError(this.getNode(), { message: 'Unauthorized webhook: token mismatch' });
 		}
 
 		if (!receivedEvent || receivedEvent !== expectedEvent) {
-			log('Webhook event mismatch', receivedEvent);
 			throw new NodeApiError(this.getNode(), { message: 'Unauthorized webhook: event mismatch' });
 		}
 
@@ -202,17 +179,15 @@ export class ParseurTrigger implements INodeType {
 			delete: async function (this: IHookFunctions): Promise<boolean> {
 				const staticData = this.getWorkflowStaticData('node');
 				const webhookId = staticData.webhookId;
-				const debug = this.getNodeParameter('debug') as boolean;
-				const log = (msg: string, data?: unknown) => {
-					if (debug) this.logger.debug(`[ParseurTrigger] ${msg}`, data ? { data } : undefined);
-				};
 
 				if (!webhookId) return true;
 				try {
 					await parseurApiRequest.call(this, 'DELETE', `webhook/${webhookId}`);
 				} catch (error) {
 					if (error instanceof NodeApiError) {
-						log('Failed to delete webhook, but ignoring.');
+						/**
+						 * Failed to delete webhook, but ignoring.
+						 * */
 					} else {
 						throw error;
 					}
