@@ -7,4 +7,3 @@ npm-debug.log*
 yarn.lock
 .vscode/launch.json
 .nvmrc
-.pnpmfile.cjs

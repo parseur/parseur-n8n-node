@@ -11,9 +11,7 @@
 [Credentials](#credentials)  
 [Compatibility](#compatibility)  
 [Resources](#resources)  
-[Credit](#credit)  
-[License](#license)  
-
+[License](#license)
 
 ## About
 
@@ -31,15 +29,14 @@ This custom **n8n Node** allows you to:
 - Upload Text: send plain or HTML content as a document to a Mailbox
 - Supports webhook events from Parseur:
 
-  | Event                          | Type        | Description                          |
-  |--------------------------------|-------------|--------------------------------------|
-  | `document.processed`           | document    | Document processed successfully      |
-  | `document.processed.flattened` | document    | Document processed as flat data      |
-  | `document.template_needed`     | document    | Processing failed (template needed)  |
-  | `document.export_failed`       | document    | Export failed                        |
-  | `table.processed`              | table       | A table field row was processed      |
-  | `table.processed.flattened`    | table       | A table field row (flattened)        |
-
+| Event                          | Type     | Description                         |
+| ------------------------------ | -------- | ----------------------------------- |
+| `document.processed`           | document | Document processed successfully     |
+| `document.processed.flattened` | document | Document processed as flat data     |
+| `document.template_needed`     | document | Processing failed (template needed) |
+| `document.export_failed`       | document | Export failed                       |
+| `table.processed`              | table    | A table field row was processed     |
+| `table.processed.flattened`    | table    | A table field row (flattened)       |
 
 ## Installation
 
@@ -49,56 +46,45 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ### Install from source
 
-1. Install dependencies
-
-```bash
-brew install pnpm
-pnpm setup
-source ~/.zshrc
-```
-
-2. Clone and build the node
+1. Clone and build the node
 
 ```bash
 git clone https://github.com/parseur/parseur-n8n-node <parseur-n8n-node>
 cd <parseur-n8n-node>
-pnpm install
-pnpm build
+npm install
+npm run build
 ```
 
-3. Set up a local n8n instance
+2. Set up a local n8n instance
 
 ```bash
 mkdir <n8n>
 cd <n8n>
-pnpm init
-pnpm add sqlite3
-pnpm approve-builds  # Needed for sqlite3 to complete install
-pnpm add n8n
-pnpm approve-builds  # Needed for n8n to complete install (select all packages, confirm and press Enter)
-pnpm exec n8n
+npm init -y
+npm install sqlite3
+npm install n8n
 ```
 
-4. Link the Parseur node to n8n
+3. Link the Parseur node to n8n
 
 ```bash
 cd ~/.n8n
 mkdir -p custom
 cd custom
-pnpm init
-pnpm link <parseur-n8n-node>
+npm init -y
+npm link <parseur-n8n-node>
 ```
 
-5. Restart n8n and you will see Parseur Trigger available.
+4. Start n8n — you will see Parseur Trigger available.
 
 ```bash
 cd <n8n>
-pnpm exec n8n
+npx n8n
 ```
 
 ## Credentials
 
-To connect n8n with your Parseur account, you’ll need two values: an **API Key** and a **Webhook Token**.
+To connect n8n with your Parseur account, you'll need two values: an **API Key** and a **Webhook Token**.
 
 ### API Key
 
@@ -106,12 +92,12 @@ Get your API key in the [Parseur account settings](https://app.parseur.com/accou
 This key is required to authenticate API requests to the Parseur platform.
 
 1. Log in to your [Parseur](https://app.parseur.com/login).
-2. Navigate to **Account**
+2. Navigate to **Account**.
 3. Copy your **API Key**.
 
 In n8n:
 
-- Click **“Add Credential”** and search for **"Parseur API"**.
+- Click **"Add Credential"** and search for **"Parseur API"**.
 - Paste your API Key into the **API Key** field.
 
 ### Webhook Token
@@ -138,6 +124,7 @@ Compatible with n8n v1.91.2.
 ## Version history
 
 #### v0.0.1
+
 Initial release
 
 ## Contributing
