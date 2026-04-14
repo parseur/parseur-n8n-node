@@ -1,15 +1,25 @@
-import {
-	ILoadOptionsFunctions,
+import type {
 	IHookFunctions,
-	IWebhookFunctions,
+	ILoadOptionsFunctions,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-	INodePropertyOptions,
-	IWebhookResponseData,
+	IWebhookFunctions,
+	IWebhookResponseData
 } from 'n8n-workflow';
 
-import { NodeApiError } from 'n8n-workflow';
-import { parseurApiRequest, getParsers } from './GenericFunctions';
+import { NodeApiError, NodeConnectionTypes, JsonObject } from 'n8n-workflow';
+
+import { getParsers, parseurApiRequest } from './GenericFunctions';
+
+type ParseurTableField = {
+	id: string;
+	name: string;
+};
+
+type ParseurWebhookResponse = {
+	id: string;
+};
 
 export class ParseurTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -22,9 +32,15 @@ export class ParseurTrigger implements INodeType {
 		defaults: {
 			name: 'Parseur Trigger',
 		},
-		credentials: [{ name: 'parseurApi', required: true }],
+		credentials: [
+			{
+				name: 'parseurApi',
+				required: true,
+			},
+		],
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
+		usableAsTool:true,
 		webhooks: [
 			{
 				name: 'default',
@@ -39,7 +55,7 @@ export class ParseurTrigger implements INodeType {
 				name: 'event',
 				type: 'options',
 				required: true,
-				description: 'For table events, make sure to re-select the Mailbox to refresh table list',
+				description: 'For table events, re-select the Mailbox to refresh the table list',
 				default: 'document.export_failed',
 				options: [
 					{ name: 'Document Export Failed', value: 'document.export_failed' },
@@ -54,7 +70,8 @@ export class ParseurTrigger implements INodeType {
 				displayName: 'Mailbox Name or ID',
 				name: 'parserId',
 				type: 'options',
-				description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+				description:
+					'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 				required: true,
 				typeOptions: {
 					loadOptionsMethod: 'getParsers',
@@ -66,7 +83,8 @@ export class ParseurTrigger implements INodeType {
 				displayName: 'Table Name or ID',
 				name: 'tableFieldId',
 				type: 'options',
-				description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+				description:
+					'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 				typeOptions: {
 					loadOptionsMethod: 'getTableFields',
 					loadOptionsDependsOn: ['parserId', 'event'],
@@ -77,38 +95,40 @@ export class ParseurTrigger implements INodeType {
 					},
 				},
 				default: '',
-			}
+			},
 		],
 	};
 
 	methods = {
 		loadOptions: {
-			/**
-			 * Return available mailbox parsers.
-			 */
 			getParsers,
 
-			/**
-			 * Return table fields of a parser if a table event is selected.
-			 */
 			getTableFields: async function (this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				const parserId = this.getNodeParameter('parserId') as string;
 				const event = this.getNodeParameter('event') as string;
 				const isTable = event.startsWith('table');
 
 				if (!parserId) {
-					throw new NodeApiError(this.getNode(), { message: 'Select a Mailbox before.' });
+					throw new NodeApiError(this.getNode(), {
+						message: 'Select a Mailbox first.',
+					});
 				}
 
-				const response = await parseurApiRequest.call(this, 'GET', `/parser/${parserId}/table_set`)
-				const options = response.map((field: any) => ({
+				const response = (await parseurApiRequest.call(
+					this,
+					'GET',
+					`/parser/${parserId}/table_set`,
+				)) as ParseurTableField[];
+
+				const options = response.map((field) => ({
 					name: field.name,
 					value: field.id,
 				}));
 
-				if (isTable && (!options || options.length === 0)) {
+				if (isTable && options.length === 0) {
 					throw new NodeApiError(this.getNode(), {
-						message: 'This Mailbox has no table fields configured. Please select another Mailbox or change the event type.',
+						message:
+							'This Mailbox has no table fields configured. Please select another Mailbox or change the event type.',
 					});
 				}
 
@@ -120,21 +140,34 @@ export class ParseurTrigger implements INodeType {
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
 		const body = this.getBodyData();
 		const credentials = await this.getCredentials('parseurApi');
-		const receivedToken = this.getHeaderData()['x-parseur-token'];
-		const receivedEvent = this.getHeaderData()['x-parseur-event'];
-		const expectedToken = credentials.webhookToken;
+		const headers = this.getHeaderData();
+
+		const receivedToken = headers['x-parseur-token'];
+		const receivedEvent = headers['x-parseur-event'];
+		const expectedToken = credentials.webhookToken as string;
 		const expectedEvent = this.getNodeParameter('event') as string;
 
 		if (!receivedToken || receivedToken !== expectedToken) {
-			throw new NodeApiError(this.getNode(), { message: 'Unauthorized webhook: token mismatch' });
+			throw new NodeApiError(this.getNode(), {
+				message: 'Unauthorized webhook: token mismatch',
+			});
 		}
 
 		if (!receivedEvent || receivedEvent !== expectedEvent) {
-			throw new NodeApiError(this.getNode(), { message: 'Unauthorized webhook: event mismatch' });
+			throw new NodeApiError(this.getNode(), {
+				message: 'Unauthorized webhook: event mismatch',
+			});
 		}
 
 		return {
-			workflowData: [[{ json: body }]],
+			workflowData: [
+				[
+					{
+						json: body as JsonObject,
+						pairedItem: { item: 0 },
+					},
+				],
+			],
 		};
 	}
 
@@ -164,34 +197,40 @@ export class ParseurTrigger implements INodeType {
 					? `table/${tableFieldId}/n8n/${event}`
 					: `parser/${parserId}/n8n/${event}`;
 
-				const body = {
+				const requestBody = {
 					target: url,
 					headers: {
-						'X-Parseur-Token': credentials.webhookToken,
+						'X-Parseur-Token': credentials.webhookToken as string,
 					},
 				};
 
-				const response = await parseurApiRequest.call(this, 'POST', route, body);
+				const response = (await parseurApiRequest.call(
+					this,
+					'POST',
+					route,
+					requestBody,
+				)) as ParseurWebhookResponse;
+
 				staticData.webhookId = response.id;
 				return true;
 			},
 
 			delete: async function (this: IHookFunctions): Promise<boolean> {
 				const staticData = this.getWorkflowStaticData('node');
-				const webhookId = staticData.webhookId;
+				const webhookId = staticData.webhookId as string | undefined;
 
-				if (!webhookId) return true;
+				if (!webhookId) {
+					return true;
+				}
+
 				try {
 					await parseurApiRequest.call(this, 'DELETE', `webhook/${webhookId}`);
-				} catch (error) {
-					if (error instanceof NodeApiError) {
-						/**
-						 * Failed to delete webhook, but ignoring.
-						 * */
-					} else {
+				} catch (error: unknown) {
+					if (!(error instanceof NodeApiError)) {
 						throw error;
 					}
 				}
+
 				return true;
 			},
 		},

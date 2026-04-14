@@ -29,13 +29,13 @@ export class ParseurApi implements ICredentialType {
 			description: ('Your personal API Key used to authenticate requests to the Parseur API. '
 				+ 'Keep this key secure and do not share it.'),
 		},
+		/* eslint-disable @n8n/community-nodes/credential-password-field */
 		{
 			displayName: 'Webhook Token',
 			name: 'webhookToken',
 			type: 'string',
 			default: '',
 			required: true,
-			// eslint-disable-next-line n8n-nodes-base/cred-class-field-type-options-password-missing
 			typeOptions: {
 				password: false,
 			},
