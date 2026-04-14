@@ -1,7 +1,14 @@
-import { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
-import { parseurApiRequest } from './GenericFunctions';
+import type {
+    IBinaryData,
+    IDataObject,
+    IExecuteFunctions,
+    INodeExecutionData,
+    INodeProperties,
+} from 'n8n-workflow';
 
+import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+
+import { parseurApiRequest } from './GenericFunctions';
 
 export const uploadFileDescription: INodeProperties[] = [
     {
@@ -18,7 +25,8 @@ export const uploadFileDescription: INodeProperties[] = [
                 operation: ['uploadFile'],
             },
         },
-        description: 'Select a parser Mailbox to upload the file to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>.',
+        description:
+            'Select a parser Mailbox to upload the file to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     },
     {
         displayName: 'File Property',
@@ -35,61 +43,92 @@ export const uploadFileDescription: INodeProperties[] = [
     },
 ];
 
+function toNodeJsonValue(value: unknown): IDataObject | string | number | boolean | null {
+    if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        value === null
+    ) {
+        return value;
+    }
+
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        return value as IDataObject;
+    }
+
+    return {
+        value: JSON.stringify(value),
+    };
+}
 
 export async function uploadFileExecute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
 
     for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-
-        const parserId = this.getNodeParameter('parserId', itemIndex) as string;
-        const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex) as string;
         try {
-            if (!items[itemIndex].binary || !items[itemIndex].binary![binaryPropertyName]) {
-                throw new NodeOperationError(this.getNode(), `No binary data property "${binaryPropertyName}" found on item ${itemIndex}`, {
-                    itemIndex,
-                });
+            const parserId = this.getNodeParameter('parserId', itemIndex) as string;
+            const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex) as string;
+
+            const binary = items[itemIndex].binary;
+            const binaryMeta = binary?.[binaryPropertyName] as IBinaryData | undefined;
+
+            if (!binaryMeta) {
+                throw new NodeOperationError(
+                    this.getNode(),
+                    `No binary data property "${binaryPropertyName}" found on item ${itemIndex}`,
+                    { itemIndex },
+                );
             }
 
             const binaryData = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
-            const binaryMeta = items[itemIndex].binary![binaryPropertyName];
 
-            const formData = {
-                file: {
-                    value: binaryData,
-                    options: {
-                        filename: binaryMeta.fileName || 'upload.dat',
-                        contentType: binaryMeta.mimeType || 'application/octet-stream',
-                    },
-                },
-            };
+            const formData = new FormData();
+            formData.append(
+                'file',
+                new Blob([binaryData], {
+                    type: binaryMeta.mimeType ?? 'application/octet-stream',
+                }),
+                binaryMeta.fileName ?? 'upload.dat',
+            );
 
-            const response = await parseurApiRequest.call(this, 'POST', `/parser/${parserId}/upload`, {}, {}, formData);
+            const response = await parseurApiRequest.call(
+                this,
+                'POST',
+                `/parser/${parserId}/upload`,
+                formData,
+            );
 
             returnData.push({
                 json: {
                     message: 'File uploaded successfully',
-                    response,
+                    response: toNodeJsonValue(response),
                 },
-                pairedItem: itemIndex,
+                pairedItem: { item: itemIndex },
             });
-        } catch (error) {
+        } catch (error: unknown) {
             if (this.continueOnFail()) {
                 returnData.push({
                     json: {
-                        error: (error as Error).message,
+                        error: error instanceof Error ? error.message : 'Unknown error',
                     },
-                    pairedItem: itemIndex,
+                    pairedItem: { item: itemIndex },
                 });
-            } else {
-                if (error instanceof NodeOperationError) {
-                    throw error;
-                } else if (error instanceof NodeApiError) {
-                    throw new NodeApiError(this.getNode(), { message: error.message }, { itemIndex });
-                } else {
-                    throw new NodeApiError(this.getNode(), error, { itemIndex });
-                }
+                continue;
             }
+
+            if (error instanceof NodeOperationError) {
+                throw error;
+            }
+
+            if (error instanceof NodeApiError) {
+                throw error;
+            }
+
+            throw new NodeApiError(this.getNode(), {
+                message: error instanceof Error ? error.message : 'Failed to upload file to Parseur',
+            }, { itemIndex });
         }
     }
 

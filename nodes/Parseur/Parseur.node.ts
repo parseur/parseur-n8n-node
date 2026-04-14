@@ -1,5 +1,10 @@
-import type { INodeType, INodeTypeDescription, IExecuteFunctions } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import type {
+    INodeType,
+    INodeTypeDescription,
+    INodeExecutionData,
+    IExecuteFunctions
+} from 'n8n-workflow';
+import { NodeOperationError, NodeConnectionTypes } from 'n8n-workflow';
 import { uploadFileDescription, uploadFileExecute } from './UploadFile.operation';
 import { uploadTextDescription, uploadTextExecute } from './UploadText.operation';
 import { getParsers } from './GenericFunctions';
@@ -16,8 +21,9 @@ export class Parseur implements INodeType {
         defaults: {
             name: 'Parseur',
         },
-        inputs: ['main'],
-        outputs: ['main'],
+        inputs: [NodeConnectionTypes.Main],
+        outputs: [NodeConnectionTypes.Main],
+        usableAsTool: true,
         credentials: [
             {
                 name: 'parseurApi',
@@ -58,17 +64,32 @@ export class Parseur implements INodeType {
     };
 
     // This method is executed by n8n with `this` bound to IExecuteFunctions
-    async execute(this: IExecuteFunctions) {
-        const operation = this.getNodeParameter('operation', 0) as string;
+    async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+        try {
+            const operation = this.getNodeParameter('operation', 0) as string;
 
-        if (operation === 'uploadFile') {
-            return uploadFileExecute.call(this);
+            if (operation === 'uploadFile') {
+                return await uploadFileExecute.call(this);
+            }
+
+            if (operation === 'uploadText') {
+                return await uploadTextExecute.call(this);
+            }
+
+            throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
+        } catch (error: unknown) {
+            if (this.continueOnFail()) {
+                return [[
+                    {
+                        json: {
+                            error: error instanceof Error ? error.message : 'Unknown error',
+                        },
+                        pairedItem: { item: 0 },
+                    },
+                ]];
+            }
+
+            throw error;
         }
-
-        if (operation === 'uploadText') {
-            return uploadTextExecute.call(this);
-        }
-
-        throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
     }
 }
