@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-parseur",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "🧩 Official n8n Trigger Node to receive document processing events from [Parseur](https://parseur.com) and automate your workflows.",
   "keywords": [
     "n8n-community-node-package",
@@ -26,7 +26,7 @@
     "url": "https://github.com/parseur/parseur-n8n-node"
   },
   "engines": {
-    "node": ">=18.10"
+    "node": ">=22.0"
   },
   "main": "dist/index.js",
   "scripts": {
