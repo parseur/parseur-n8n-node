@@ -55,10 +55,10 @@ npm install
 npm run build
 ```
 
-2. Set up a local n8n instance
+2. Set up a local n8n instance — **outside** `<parseur-n8n-node>`, otherwise the custom-node loader will follow the step-3 symlink into n8n's own `node_modules` and crash on `*.node.js` files.
 
 ```bash
-mkdir <n8n>
+mkdir <n8n>  # NOT in <parseur-n8n-node>
 cd <n8n>
 npm init -y
 npm install sqlite3
@@ -116,12 +116,42 @@ This token will be expected in the HTTP header `X-Parseur-Token` of all webhook 
 
 Compatible with n8n v1.91.2.
 
+Requires **Node.js v22** or later.
+
 ## Resources
 
 - [Parseur](https://parseur.com) — Document processing & data extraction
 - [n8n](https://n8n.io) — Workflow automation
 
 ## Version history
+
+Check CHANGELOG.md for more detailed history.
+
+#### v0.0.7
+
+- Bumped `@n8n/node-cli` to v0.28.0 (beta track)
+- Pinned minimum versions for langchain dependencies (`@langchain/community` ≥1.1.18, `@langchain/core` ≥1.1.38, `@langchain/classic` ≥1.0.31, `langsmith` ≥0.5.19) via npm overrides
+- Added `subtitle` to the Parseur Trigger node — selected event is now shown under the node name in the workflow canvas
+- Documented Node.js v22 requirement
+
+#### v0.0.6
+
+- Added GitHub Action publishing workflow
+- Switched package manager from PNPM to NPM
+- Enabled Dependabot and applied multiple dependency updates (langchain, typescript, prettier, undici, release-it, minimatch, gulp, eslint-plugin-n8n-nodes-base)
+
+#### v0.0.4
+
+- Removed debug log
+
+#### v0.0.3
+
+- Replaced `this.helpers.request` with `this.helpers.requestWithAuthentication` for credential-scoped API calls
+- README updates
+
+#### v0.0.2
+
+- Version bump (no functional changes)
 
 #### v0.0.1
 
