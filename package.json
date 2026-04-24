@@ -56,5 +56,9 @@
   },
   "peerDependencies": {
     "n8n-workflow": "*"
+  },
+  "overrides": {
+    "langsmith": "^0.5.22",
+    "@langchain/community": "^1.1.27"
   }
 }
