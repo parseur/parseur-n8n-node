@@ -223,13 +223,7 @@ export class ParseurTrigger implements INodeType {
 					return true;
 				}
 
-				try {
-					await parseurApiRequest.call(this, 'DELETE', `webhook/${webhookId}`);
-				} catch (error: unknown) {
-					if (!(error instanceof NodeApiError)) {
-						throw error;
-					}
-				}
+				await parseurApiRequest.call(this, 'DELETE', `webhook/${webhookId}`);
 
 				return true;
 			},
