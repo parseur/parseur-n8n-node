@@ -59,11 +59,12 @@ export class ParseurTrigger implements INodeType {
 				description: 'For table events, re-select the Mailbox to refresh the table list',
 				default: 'document.processed',
 				options: [
+					// Options need to get sorted alphabetically by name
+					{ name: 'Document Export Failed', value: 'document.export_failed' },
 					{ name: 'Document Processed', value: 'document.processed' },
-					{ name: 'Table Processed', value: 'table.processed' },
 					{ name: 'Document Processed (Flattened)', value: 'document.processed.flattened' },
 					{ name: 'Document Processing Failed', value: 'document.template_needed' },
-					{ name: 'Document Export Failed', value: 'document.export_failed' },
+					{ name: 'Table Processed', value: 'table.processed' },
 					{ name: 'Table Processed (Flattened)', value: 'table.processed.flattened' },
 				],
 			},
