@@ -4,6 +4,7 @@ import type {
     IExecuteFunctions,
     INodeExecutionData,
     INodeProperties,
+    JsonObject,
 } from 'n8n-workflow';
 
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
@@ -119,11 +120,11 @@ export async function uploadFileExecute(this: IExecuteFunctions): Promise<INodeE
             }
 
             if (error instanceof NodeOperationError) {
-                throw error;
+                throw new NodeOperationError(this.getNode(), error, { itemIndex });
             }
 
             if (error instanceof NodeApiError) {
-                throw error;
+                throw new NodeApiError(this.getNode(), error as unknown as JsonObject, { itemIndex });
             }
 
             throw new NodeApiError(this.getNode(), {

@@ -89,7 +89,10 @@ export class Parseur implements INodeType {
                 ]];
             }
 
-            throw error;
+            throw new NodeOperationError(
+                this.getNode(),
+                error instanceof Error ? error : 'Unknown error',
+            );
         }
     }
 }
