@@ -25,6 +25,12 @@
     "type": "git",
     "url": "https://github.com/parseur/parseur-n8n-node"
   },
+  "auto-changelog": {
+    "commitUrl": "https://github.com/parseur/parseur-n8n-node/commit/{id}",
+    "compareUrl": "https://github.com/parseur/parseur-n8n-node/compare/{from}...{to}",
+    "issueUrl": "https://github.com/parseur/parseur-n8n-node/issues/{id}",
+    "mergeUrl": "https://github.com/parseur/parseur-n8n-node/pull/{id}"
+  },
   "scripts": {
     "build": "n8n-node build",
     "build:watch": "tsc --watch",
