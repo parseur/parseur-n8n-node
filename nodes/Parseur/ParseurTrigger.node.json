@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-parseur-trigger",
+	"node": "n8n-nodes-parseur.parseurTrigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Development", "Developer Tools"],

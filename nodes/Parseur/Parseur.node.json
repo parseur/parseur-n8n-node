@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-parseur",
+	"node": "n8n-nodes-parseur.parseur",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Development", "Developer Tools"],
