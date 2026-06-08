@@ -2,7 +2,7 @@
 	"node": "n8n-nodes-parseur-trigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["Development", "Developer Tools"],
+	"categories": ["Development"],
 	"resources": {
 		"primaryDocumentation": [
 			{
