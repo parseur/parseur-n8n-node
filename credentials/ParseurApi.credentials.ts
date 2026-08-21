@@ -3,7 +3,7 @@ import type { IAuthenticateGeneric, ICredentialType, ICredentialTestRequest, INo
 export class ParseurApi implements ICredentialType {
 	name = 'parseurApi';
 	displayName = 'Parseur API';
-	icon = 'file:parseur.svg' as Icon;
+	icon = { light: 'file:parseur.light.svg', dark: 'file:parseur.dark.svg' } as Icon;
 	documentationUrl = 'https://help.parseur.com/';
 
 	properties: INodeProperties[] = [
