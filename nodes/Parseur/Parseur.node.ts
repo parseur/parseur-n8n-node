@@ -13,7 +13,7 @@ export class Parseur implements INodeType {
     description: INodeTypeDescription = {
         displayName: 'Parseur',
         name: 'parseur',
-        icon: 'file:parseur.svg',
+        icon: { light: 'file:parseur.light.svg', dark: 'file:parseur.dark.svg' },
         group: ['input'],
         version: 1,
         subtitle: '={{ $parameter["operation"] + ": " + $parameter["resource"] }}',

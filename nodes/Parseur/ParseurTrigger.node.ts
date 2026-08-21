@@ -25,7 +25,7 @@ export class ParseurTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Parseur Trigger',
 		name: 'parseurTrigger',
-		icon: 'file:parseur.svg',
+		icon: { light: 'file:parseur.light.svg', dark: 'file:parseur.dark.svg' },
 		group: ['trigger'],
 		version: 1,
 		subtitle: '={{ $parameter["event"] }}',
@@ -41,7 +41,6 @@ export class ParseurTrigger implements INodeType {
 		],
 		inputs: [],
 		outputs: [NodeConnectionTypes.Main],
-		usableAsTool:true,
 		webhooks: [
 			{
 				name: 'default',
