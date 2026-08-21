@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-parseur",
   "version": "0.0.9",
-  "description": "🧩 Official n8n Trigger Node to receive document processing events from [Parseur](https://parseur.com) and automate your workflows.",
+  "description": "🧩 Official n8n Parseur Node to send and receive document processing events from [Parseur](https://parseur.com) and automate your data extraction workflows.",
   "keywords": [
     "n8n-community-node-package",
     "parseur",
@@ -17,7 +17,7 @@
   ],
   "author": {
     "name": "Parseur Team",
-    "email": "admin@parseur.com"
+    "email": "dev@parseur.com"
   },
   "license": "MIT",
   "homepage": "http://parseur.com",
