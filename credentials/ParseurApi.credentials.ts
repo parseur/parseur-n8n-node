@@ -37,7 +37,7 @@ export class ParseurApi implements ICredentialType {
 			default: '',
 			required: true,
 			typeOptions: {
-				password: false,
+				password: true,
 			},
 			hint: ('Required to verify that incoming webhook requests are from n8n.'
 				+ '<br/><strong>Do not share this token.</strong><br/>'
