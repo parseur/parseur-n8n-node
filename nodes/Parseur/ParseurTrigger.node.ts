@@ -226,10 +226,13 @@ export class ParseurTrigger implements INodeType {
 
 				try {
 					await parseurApiRequest.call(this, 'DELETE', `webhook/${webhookId}`);
-				} finally {
-					// Always drop the stored ID: keeping a stale one makes checkExists
-					// skip create on the next activation, silently killing the trigger.
 					delete staticData.webhookId;
+				} catch (error) {
+					if (error instanceof NodeApiError && error.httpCode === 404) {
+						delete staticData.webhookId;
+						return true;
+					}
+					throw error;
 				}
 
 				return true;
