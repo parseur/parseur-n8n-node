@@ -228,11 +228,11 @@ export class ParseurTrigger implements INodeType {
 					await parseurApiRequest.call(this, 'DELETE', `webhook/${webhookId}`);
 					delete staticData.webhookId;
 				} catch (error) {
-					if (error instanceof NodeApiError && error.httpCode === 404) {
+					if (error instanceof NodeApiError && error.httpCode === "404") {
 						delete staticData.webhookId;
 						return true;
 					}
-					throw error;
+					throw new NodeApiError(this.getNode(), error as JsonObject);
 				}
 
 				return true;
