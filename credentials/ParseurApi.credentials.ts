@@ -29,7 +29,6 @@ export class ParseurApi implements ICredentialType {
 			description: ('Your personal API Key used to authenticate requests to the Parseur API. '
 				+ 'Keep this key secure and do not share it.'),
 		},
-		/* eslint-disable @n8n/community-nodes/credential-password-field */
 		{
 			displayName: 'Webhook Token',
 			name: 'webhookToken',
@@ -37,7 +36,7 @@ export class ParseurApi implements ICredentialType {
 			default: '',
 			required: true,
 			typeOptions: {
-				password: false,
+				password: true,
 			},
 			hint: ('Required to verify that incoming webhook requests are from n8n.'
 				+ '<br/><strong>Do not share this token.</strong><br/>'
