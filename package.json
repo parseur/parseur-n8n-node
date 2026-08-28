@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-parseur",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "🧩 Official n8n Parseur Node to send and receive document processing events from [Parseur](https://parseur.com) and automate your data extraction workflows.",
   "keywords": [
     "n8n-community-node-package",
