@@ -58,7 +58,7 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "9.29.0",
+    "@eslint/js": "9.39.5",
     "@n8n/node-cli": "^0.47.1",
     "@types/node": "^22.20.2",
     "@vitest/coverage-v8": "5.0.1",
