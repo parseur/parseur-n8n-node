@@ -11,7 +11,7 @@ This is `n8n-nodes-parseur`, Parseur's official n8n community node (two nodes + 
 ## Always
 
 - Verify with `npm ci && npm run lint && npm run typecheck && npm test && npm run build` before pushing or declaring something safe. Every source change comes with tests.
-- Work on a branch and open a pull request. `master` requires a PR, one approval and green CI. Never bypass a ruleset, approve your own work, or approve a deployment: those are human actions.
+- Work on a branch and open a pull request. `master` requires a PR, one approval and green CI. The only direct pushes allowed are the release commit and tag made by the release procedure in `MAINTAINING.md`. Never approve your own work or a deployment: those are human actions.
 - Say what you did, what you skipped and why, in plain language. Ask before anything outward-facing that is not covered by a runbook (closing PRs, publishing, changing repository settings).
 - Keep `MAINTAINING.md`, the skills and `docs/` in sync when you learn a new gotcha or change a process.
 
