@@ -46,41 +46,45 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ### Install from source
 
+The examples below use `~/parseur-n8n-node` for the node source and `~/n8n-local` for the n8n instance. Adjust the paths if you prefer other locations, but keep the two directories separate: if n8n is installed inside the node directory, the custom-node loader follows the symlink created in step 3 into n8n's own `node_modules` and crashes on `*.node.js` files.
+
 1. Clone and build the node
 
 ```bash
-git clone https://github.com/parseur/parseur-n8n-node <parseur-n8n-node>
-cd <parseur-n8n-node>
+git clone https://github.com/parseur/parseur-n8n-node ~/parseur-n8n-node
+cd ~/parseur-n8n-node
 npm install
 npm run build
 ```
 
-2. Set up a local n8n instance — **outside** `<parseur-n8n-node>`, otherwise the custom-node loader will follow the step-3 symlink into n8n's own `node_modules` and crash on `*.node.js` files.
+2. Set up a local n8n instance in a separate directory
 
 ```bash
-mkdir <n8n>  # NOT in <parseur-n8n-node>
-cd <n8n>
+mkdir ~/n8n-local
+cd ~/n8n-local
 npm init -y
-npm install sqlite3
 npm install n8n
 ```
 
-3. Link the Parseur node to n8n
+   Do not install `sqlite3` yourself: n8n ships the exact version it needs, and a different version at the top level breaks n8n's startup.
+
+3. Link the Parseur node into n8n's custom nodes directory
 
 ```bash
-cd ~/.n8n
-mkdir -p custom
-cd custom
+mkdir -p ~/.n8n/custom
+cd ~/.n8n/custom
 npm init -y
-npm link <parseur-n8n-node>
+npm link ~/parseur-n8n-node
 ```
 
-4. Start n8n — you will see Parseur Trigger available.
+4. Start n8n and look for the **Parseur** and **Parseur Trigger** nodes in the editor
 
 ```bash
-cd <n8n>
+cd ~/n8n-local
 npx n8n
 ```
+
+After changing the node source, run `npm run build` in `~/parseur-n8n-node` and restart n8n to pick up the changes.
 
 ## Credentials
 
