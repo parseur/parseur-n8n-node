@@ -60,6 +60,7 @@
   "devDependencies": {
     "@eslint/js": "9.29.0",
     "@n8n/node-cli": "^0.47.1",
+    "@types/node": "^22.20.2",
     "@vitest/coverage-v8": "5.0.1",
     "eslint": "9.29.0",
     "n8n-workflow": "2.28.4",
