@@ -1,3 +1,15 @@
+# Dependabot configuration.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Everything in this package is a devDependency (the n8n toolchain), so updates
+# are grouped to keep PR noise low:
+#   - "n8n-toolchain": @n8n/* packages, updated together (they are released in lockstep).
+#   - "dev-minor-patch": every other minor/patch bump in one PR.
+#   - Major bumps stay individual PRs so each one can be evaluated on its own.
+#
+# eslint / @eslint/js majors are ignored on purpose: @n8n/node-cli pins its own
+# eslint 9.29.0 and its lint plugins break on ESLint 10 (verified 2026-09-15).
+# Revisit when @n8n/node-cli moves to ESLint 10 (see MAINTAINING.md).
 version: 2
 
 updates:
@@ -6,3 +18,24 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    groups:
+      n8n-toolchain:
+        patterns:
+          - "@n8n/*"
+          - "n8n-workflow"
+      dev-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
