@@ -104,7 +104,7 @@ In n8n:
 
 ### Webhook Token
 
-The **Webhook Token** is used to verify that incoming webhook requests (e.g. from n8n to Parseur) are legitimate.
+The **Webhook Token** is used to verify that incoming webhook requests (from Parseur to n8n) are legitimate.
 
 You can generate a secure random token using a service like [uuidgenerator.net](https://www.uuidgenerator.net/), or generate one yourself using a tool or script of your choice.
 
@@ -113,6 +113,35 @@ You can generate a secure random token using a service like [uuidgenerator.net](
 3. Paste it into the **Webhook Token** field in your Parseur credential in n8n.
 
 This token will be expected in the HTTP header `X-Parseur-Token` of all webhook requests.
+
+## Using the Parseur Trigger
+
+When you activate a workflow (or click **Listen for test event**), the Parseur Trigger node registers a webhook on Parseur pointing to your n8n webhook URL. Two conditions must be met for this to work.
+
+### Your n8n instance must be reachable from the internet
+
+Parseur's servers call your n8n webhook URL, so it must be a public HTTPS URL. A local address such as `http://localhost:5678` is rejected by Parseur.
+
+If n8n is already hosted on a public domain (n8n Cloud, a server behind a reverse proxy), nothing else is needed.
+
+If you run n8n locally, expose it through a tunnel and tell n8n its public URL with the `N8N_WEBHOOK_URL` environment variable. Any tunneling tool works, for example:
+
+- [ngrok](https://ngrok.com/): `ngrok http 5678`
+- [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/): `cloudflared tunnel --url http://localhost:5678`
+- [localtunnel](https://github.com/localtunnel/localtunnel): `npx localtunnel --port 5678`
+- [Tailscale Funnel](https://tailscale.com/kb/1223/funnel): `tailscale funnel 5678`
+
+Then start n8n with the public URL the tool gave you:
+
+```bash
+N8N_WEBHOOK_URL=https://your-public-host.example.com npx n8n
+```
+
+Restart n8n whenever the tunnel URL changes, and re-activate workflows using the trigger so the webhook is re-registered with the new URL.
+
+### Your API key must have permission to manage webhooks
+
+Creating a webhook requires the **Admin** or **Editor** role on the Parseur account that owns the mailbox. If the API key belongs to a user with the **Viewer** role, or if that user currently has another account selected in Parseur, registration fails with `You do not have permission to perform this action.`
 
 ## Compatibility
 
