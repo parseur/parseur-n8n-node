@@ -93,6 +93,16 @@ Quirks worth knowing:
 3. Check the GitHub release exists with the changelog as description and the tag as title: `gh release view x.y.z`.
 4. n8n's team reviews new versions of verified community nodes and contacts `dev@parseur.com` with questions. The new version shows up in the [n8n Creator portal](https://n8n.io/creators/) once approved.
 
+### Who can release
+
+Publishing is possible only through `publish.yml`, and `publish.yml` only runs on a `x.y.z` tag pushed to this repository:
+
+- **npm side:** the package is published with npm **Trusted Publishing** (OIDC). npm accepts a publish only from a GitHub Actions run of `publish.yml` in `parseur/parseur-n8n-node`; there is no long-lived `NPM_TOKEN` in the repository secrets. The npm package owner is the `parseur` npm account.
+- **GitHub side:** the repository ruleset _Release tags: admins only_ (Settings → Rules) restricts creating, moving and deleting `*.*.*` tags to repository admins. Access to the repository is granted through the `devs` team of the Parseur org (org members only, 2FA enforced, no outside collaborators). Workflows get a read-only `GITHUB_TOKEN` by default; `publish.yml` requests `id-token: write` explicitly.
+- Pull requests from forks run CI with a read-only token and no secrets or OIDC, so they cannot publish.
+
+Review the collaborator list and the ruleset when someone joins or leaves the team.
+
 ### If something went wrong
 
 - Publish workflow failed before `npm publish`: fix on `master`, then re-run the workflow from the Actions tab (same tag) or cut a patch release.

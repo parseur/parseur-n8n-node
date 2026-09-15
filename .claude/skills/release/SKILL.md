@@ -32,6 +32,8 @@ What `n8n-node release` does (via release-it): `npm run lint && npm run build` â
 
 ## Gotchas
 
+- Only repository admins can push `x.y.z` tags (ruleset _Release tags: admins only_), and npm accepts publishes only from `publish.yml` runs of this repo (Trusted Publishing, no `NPM_TOKEN`). If a release is refused at tag push, check the ruleset and your role rather than working around it.
+
 - node-cli passes `--git.requireBranch main` to release-it in a form release-it ignores, which is why releasing from `master` works. If a node-cli update makes it effective, the release aborts with "Must be on branch main": rename the default branch to `main` (update `ci.yml`, `dependabot.yml`), do not bypass the check.
 - `prepublishOnly` â†’ `n8n-node prerelease` blocks any `npm publish` without `RELEASE_MODE`; that is intentional.
 - Tags are bare `x.y.z`; `publish.yml` matches `*.*.*`.
