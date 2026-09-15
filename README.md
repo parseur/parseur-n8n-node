@@ -66,8 +66,6 @@ npm init -y
 npm install n8n
 ```
 
-   Do not install `sqlite3` yourself: n8n ships the exact version it needs, and a different version at the top level breaks n8n's startup.
-
 3. Link the Parseur node into n8n's custom nodes directory
 
 ```bash
