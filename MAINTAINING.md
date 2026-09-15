@@ -86,7 +86,7 @@ Quirks worth knowing:
 
 ### After
 
-1. Watch the **Publish** workflow: <https://github.com/parseur/parseur-n8n-node/actions>. It runs lint and build again, then `npm publish --provenance` (OIDC trusted publishing, or `NPM_TOKEN` if set).
+1. Open the **Publish** run at <https://github.com/parseur/parseur-n8n-node/actions>: it waits for approval. Click **Review deployments → npm-publish → Approve and deploy**. It then runs lint and build again and `npm publish --provenance` (OIDC trusted publishing; no `NPM_TOKEN` is configured).
 2. `dev@parseur.com` receives npm's publication email. Then verify the published package:
    `npx @n8n/scan-community-package@beta n8n-nodes-parseur`
    If the scan reports errors: fix them, and cut a patch release (lint → release → scan again).
@@ -99,6 +99,8 @@ Publishing is possible only through `publish.yml`, and `publish.yml` only runs o
 
 - **npm side:** the package is published with npm **Trusted Publishing** (OIDC). npm accepts a publish only from a GitHub Actions run of `publish.yml` in `parseur/parseur-n8n-node`; there is no long-lived `NPM_TOKEN` in the repository secrets. The npm package owner is the `parseur` npm account.
 - **GitHub side:** the repository ruleset _Release tags: admins only_ (Settings → Rules) restricts creating, moving and deleting `*.*.*` tags to repository admins. Access to the repository is granted through the `devs` team of the Parseur org (org members only, 2FA enforced, no outside collaborators). Workflows get a read-only `GITHUB_TOKEN` by default; `publish.yml` requests `id-token: write` explicitly.
+- **Approval gate:** the publish job runs in the `npm-publish` GitHub environment, which requires a review by a member of the `devs` team before it starts (Actions → the Publish run → _Review deployments_). The environment only accepts `x.y.z` tags. The npm Trusted Publisher configuration must name this environment, otherwise npm rejects the OIDC token.
+- **`master` protection:** the ruleset _Protect master: PR + CI required_ requires changes to arrive by pull request with one approval and a green **Lint, test and build** check. Repository admins may bypass it; this is what lets `npm run release` push the `Release x.y.z` commit directly, and what lets a lone admin merge a Dependabot PR (`gh pr merge --admin`). Bypasses are logged in the repository's rule insights.
 - Pull requests from forks run CI with a read-only token and no secrets or OIDC, so they cannot publish.
 
 Review the collaborator list and the ruleset when someone joins or leaves the team.
