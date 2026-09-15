@@ -7,6 +7,12 @@ description: Cut and publish a new version of n8n-nodes-parseur (release-it via 
 
 Human runbook: MAINTAINING.md § 3. Keep both in sync. Releasing is outward-facing: confirm the version number with the user before running `npm run release`, and report each external step as it happens.
 
+## Scope
+
+- **Patch releases** may be cut by Claude (Monday routine or on request) when shipped code changed since the last tag and nothing is labelled feature/breaking: see MAINTAINING.md § 3 "Automated patch releases" for the rule and the non-interactive `release-it patch --ci` command.
+- **Minor and major releases** are started by a human with `npm run release`. If one seems warranted, say so and stop.
+- Every publish waits for a human approval in the `npm-publish` environment; Claude cannot and must not approve it. Always end with "Action required: approve the publish of x.y.z" and the run link.
+
 ## Preflight
 
 1. On `master`, clean tree, up to date: `git status`, `git pull`. CI green for the latest commit: `gh run list --branch master --limit 1`.
@@ -32,7 +38,7 @@ What `n8n-node release` does (via release-it): `npm run lint && npm run build` �
 
 ## Gotchas
 
-- Only repository admins can push `x.y.z` tags (ruleset _Release tags: admins only_), and npm accepts publishes only from `publish.yml` runs of this repo (Trusted Publishing, no `NPM_TOKEN`). If a release is refused at tag push, check the ruleset and your role rather than working around it.
+- Only repository admins and the Claude GitHub App can push `x.y.z` tags (ruleset _Release tags: admins and Claude only_), and npm accepts publishes only from `publish.yml` runs of this repo (Trusted Publishing, no `NPM_TOKEN`). If a release is refused at tag push, check the ruleset and your role rather than working around it.
 
 - node-cli passes `--git.requireBranch main` to release-it in a form release-it ignores, which is why releasing from `master` works. If a node-cli update makes it effective, the release aborts with "Must be on branch main": rename the default branch to `main` (update `ci.yml`, `dependabot.yml`), do not bypass the check.
 - `prepublishOnly` → `n8n-node prerelease` blocks any `npm publish` without `RELEASE_MODE`; that is intentional.

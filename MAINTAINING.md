@@ -29,7 +29,7 @@ npm ci && npm run lint && npm run typecheck && npm test && npm run build
 Dependabot opens PRs weekly; CI runs on each. Once a week (or when notified):
 
 1. **Triage.** `gh pr list --author app/dependabot`. Read titles; check CI status with `gh pr checks <n>`.
-2. **Green PR, minor/patch, or grouped PR:** merge it (`gh pr merge <n> --merge --delete-branch`). Prefer `--merge` over squash so the branch history stays linear with Dependabot's rebases.
+2. **Green PR:** run the full local check on its branch, then approve and merge (`gh pr review <n> --approve`, `gh pr merge <n> --merge --delete-branch`). `master` requires one approval from someone other than the last pusher and a green CI check; for a Dependabot PR that reviewer can be a maintainer or Claude. Prefer `--merge` over squash so the branch history stays consistent with Dependabot's rebases.
 3. **Several PRs touching the lockfile** conflict with each other after the first merge. Either wait for Dependabot to rebase (a few minutes) or merge locally:
    ```bash
    git fetch origin
@@ -45,6 +45,20 @@ Dependabot opens PRs weekly; CI runs on each. Once a week (or when notified):
 5. **`@n8n/node-cli` bumps** deserve a look at `npm run lint` output: new rules may flag existing code. Fix the code rather than disabling rules; n8n's cloud verification runs the same rules.
 6. **Security advisories:** `npm audit`. Most findings are transitive under `@n8n/node-cli` (its AI SDK pulls LangChain). If `npm audit fix` (never `--force`) does not fix them and the vulnerable package is not in our runtime dependency tree (we have none: everything is `devDependencies`), note it and move on.
 7. Compare `dist/` before/after (`find dist -type f | sort`) when a toolchain package changes; the file list must not change.
+
+### The Monday routine
+
+Dependabot opens its PRs on Monday at 08:00 Europe/Paris. At 09:00, Claude Tag runs this routine in the Slack channel `#n8n-node` (the prompt is stored in Slack; this is the reference copy, keep them identical):
+
+> @Claude every Monday at 09:00 Europe/Paris, run the weekly maintenance of the GitHub repository parseur/parseur-n8n-node and post the result in this channel only when you are completely done.
+>
+> Procedure: clone the repo and follow CLAUDE.md, MAINTAINING.md section 1 and .claude/skills/update-deps/SKILL.md. For every open Dependabot pull request, in order of increasing risk: check out its branch, run `npm ci && npm run lint && npm run typecheck && npm test && npm run build`. If everything passes and CI is green, approve the PR and merge it with a merge commit, then wait for Dependabot to rebase the remaining PRs before continuing. If anything fails, do not merge: comment on the PR with the exact error and whether it matches a known blocker in MAINTAINING.md. Never merge or approve a PR you authored, never bypass a rule, never close a PR unless its version is already in master. When all PRs are handled, run the same full check on the updated master. Then decide whether a patch release is warranted using the rule in MAINTAINING.md section 3 (shipped code changed since the last tag, nothing labelled feature or breaking): if yes, cut it with the non-interactive release-it command from that section and note that the publish now waits for approval; if a minor or major release seems warranted, do not release, say so. Also check for failed runs of the Publish workflow, publishes still waiting for approval, human PRs waiting for review for more than 7 days, and new `npm audit` findings compared with MAINTAINING.md.
+>
+> Then post exactly one message, starting with one of these lines, followed by one bullet per PR or finding with links:
+>
+> 1. "✅ OK, here is what I did:" when every PR was merged and master passes all checks.
+> 2. "⚠️ Something went wrong:" when the routine itself could not complete (repo unreachable, checks impossible, unexpected error), with the error.
+> 3. "🙋 Action required from someone else:" when a human must act: approve the publish of the patch release you just tagged (link to the Publish run), a bump that fails and needs a decision, a minor or major release that seems warranted, a human PR waiting for review. List what was merged anyway.
 
 Known blockers as of 2026-09-15: ESLint 10 (#100, #92) and TypeScript 7 (#74). Re-test them when `@n8n/node-cli` releases mention ESLint 10 or typescript-eslint announces TS 7 support.
 
@@ -98,12 +112,34 @@ Quirks worth knowing:
 Publishing is possible only through `publish.yml`, and `publish.yml` only runs on a `x.y.z` tag pushed to this repository:
 
 - **npm side:** the package is published with npm **Trusted Publishing** (OIDC). npm accepts a publish only from a GitHub Actions run of `publish.yml` in `parseur/parseur-n8n-node`; there is no long-lived `NPM_TOKEN` in the repository secrets. The npm package owner is the `parseur` npm account.
-- **GitHub side:** the repository ruleset _Release tags: admins only_ (Settings → Rules) restricts creating, moving and deleting `*.*.*` tags to repository admins. Access to the repository is granted through the `devs` team of the Parseur org (org members only, 2FA enforced, no outside collaborators). Workflows get a read-only `GITHUB_TOKEN` by default; `publish.yml` requests `id-token: write` explicitly.
+- **GitHub side:** the repository ruleset _Release tags: admins and Claude only_ (Settings → Rules) restricts creating, moving and deleting `*.*.*` tags to repository admins and the Claude GitHub App (which the Monday routine uses for patch releases). Access to the repository is granted through the `devs` team of the Parseur org (org members only, 2FA enforced, no outside collaborators). Workflows get a read-only `GITHUB_TOKEN` by default; `publish.yml` requests `id-token: write` explicitly.
 - **Approval gate:** the publish job runs in the `npm-publish` GitHub environment, which requires a review by a member of the `devs` team before it starts (Actions → the Publish run → _Review deployments_). The environment only accepts `x.y.z` tags. The npm Trusted Publisher configuration must name this environment, otherwise npm rejects the OIDC token.
 - **`master` protection:** the ruleset _Protect master: PR + CI required_ requires changes to arrive by pull request with one approval and a green **Lint, test and build** check. Repository admins may bypass it; this is what lets `npm run release` push the `Release x.y.z` commit directly, and what lets a lone admin merge a Dependabot PR (`gh pr merge --admin`). Bypasses are logged in the repository's rule insights.
 - Pull requests from forks run CI with a read-only token and no secrets or OIDC, so they cannot publish.
 
 Review the collaborator list and the ruleset when someone joins or leaves the team.
+
+### Automated patch releases (Monday routine)
+
+Claude may cut **patch** releases on its own; **minor and major releases are always started by a human** with `npm run release`. Every release, automated or not, still waits for a human approval of the publish in the `npm-publish` environment.
+
+A patch release is warranted when, since the last tag, at least one commit changed what ships (`nodes/`, `credentials/`, or the `n8n` / `peerDependencies` fields of `package.json`) and none of those commits is labelled as a feature or a breaking change (`feat:`, `BREAKING`, or a PR labelled `minor`/`major`). Dependency, docs, CI and test-only changes never trigger a release: the published `dist/` would be byte-identical.
+
+Non-interactive equivalent of `npm run release` for a patch (same flags `n8n-node release` uses, plus `patch --ci`):
+
+```bash
+git config user.name "claude[bot]" && git config user.email "claude[bot]@users.noreply.github.com"
+npx release-it patch --ci \
+  --git.requireCleanWorkingDir --git.requireUpstream --git.requireCommits \
+  --git.commit --git.tag --git.push \
+  --git.changelog="npx auto-changelog --stdout --unreleased --commit-limit false -u --hide-credit" \
+  --github.release \
+  --hooks.before:init="npm run lint && npm run build" \
+  --hooks.after:bump="npx auto-changelog -p" \
+  --npm.publish=false
+```
+
+`GITHUB_TOKEN` must be set for the GitHub release step; if it is unavailable, drop `--github.release` and run `gh release create x.y.z --title x.y.z --notes "<latest CHANGELOG.md block>"` afterwards. The tag push triggers `publish.yml`, which then waits for approval.
 
 ### If something went wrong
 
