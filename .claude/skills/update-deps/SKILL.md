@@ -31,7 +31,7 @@ Human runbook: MAINTAINING.md § 1. Keep both in sync.
    find dist -type f | sort | diff - /tmp/dist-before.txt
    ```
    Roll back a failed bump with `git reset --hard <sha before merge>` then `npm ci --ignore-scripts`.
-4. `master` is protected (PR + one approval + green CI; admins can bypass). Prefer merging Dependabot PRs on GitHub once CI is green: `gh pr merge <n> --merge --admin` when no second reviewer is around (the bypass is logged). Local multi-PR merges must be pushed as a PR branch, not directly to `master`. PRs whose target version is already in the lockfile: comment "superseded" and close.
+4. Merging. `master` requires a PR, one approval from someone other than the last pusher, and a green **Lint, test and build** check. Dependabot pushed the PR, so Claude may approve and merge it once the full local check passed on the PR branch: `gh pr review <n> --approve --body "<what was verified>"` then `gh pr merge <n> --merge --delete-branch`. Never approve or merge a PR you authored yourself, and never use `--admin`. After each merge the other Dependabot PRs go out of date: wait for Dependabot to rebase them (poll `gh pr view <n> --json mergeStateStatus` for up to 10 minutes, or comment `@dependabot rebase`), then re-check CI before merging the next one. Finish by running the full check on the updated `master`. PRs whose target version is already in the lockfile: comment "superseded" and close.
 5. `npm audit` for the summary; mention what remains and where it comes from (`npm ls <pkg>`).
 
 ## Gotchas

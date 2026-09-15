@@ -29,7 +29,7 @@ npm ci && npm run lint && npm run typecheck && npm test && npm run build
 Dependabot opens PRs weekly; CI runs on each. Once a week (or when notified):
 
 1. **Triage.** `gh pr list --author app/dependabot`. Read titles; check CI status with `gh pr checks <n>`.
-2. **Green PR, minor/patch, or grouped PR:** merge it (`gh pr merge <n> --merge --delete-branch`). Prefer `--merge` over squash so the branch history stays linear with Dependabot's rebases.
+2. **Green PR:** run the full local check on its branch, then approve and merge (`gh pr review <n> --approve`, `gh pr merge <n> --merge --delete-branch`). `master` requires one approval from someone other than the last pusher and a green CI check; for a Dependabot PR that reviewer can be a maintainer or Claude. Prefer `--merge` over squash so the branch history stays consistent with Dependabot's rebases.
 3. **Several PRs touching the lockfile** conflict with each other after the first merge. Either wait for Dependabot to rebase (a few minutes) or merge locally:
    ```bash
    git fetch origin
@@ -45,6 +45,20 @@ Dependabot opens PRs weekly; CI runs on each. Once a week (or when notified):
 5. **`@n8n/node-cli` bumps** deserve a look at `npm run lint` output: new rules may flag existing code. Fix the code rather than disabling rules; n8n's cloud verification runs the same rules.
 6. **Security advisories:** `npm audit`. Most findings are transitive under `@n8n/node-cli` (its AI SDK pulls LangChain). If `npm audit fix` (never `--force`) does not fix them and the vulnerable package is not in our runtime dependency tree (we have none: everything is `devDependencies`), note it and move on.
 7. Compare `dist/` before/after (`find dist -type f | sort`) when a toolchain package changes; the file list must not change.
+
+### The Monday routine
+
+Dependabot opens its PRs on Monday at 08:00 Europe/Paris. At 09:00, Claude Tag runs this routine in the Slack channel `#n8n-node` (the prompt is stored in Slack; this is the reference copy, keep them identical):
+
+> @Claude every Monday at 09:00 Europe/Paris, run the weekly maintenance of the GitHub repository parseur/parseur-n8n-node and post the result in this channel only when you are completely done.
+>
+> Procedure: clone the repo and follow CLAUDE.md, MAINTAINING.md section 1 and .claude/skills/update-deps/SKILL.md. For every open Dependabot pull request, in order of increasing risk: check out its branch, run `npm ci && npm run lint && npm run typecheck && npm test && npm run build`. If everything passes and CI is green, approve the PR and merge it with a merge commit, then wait for Dependabot to rebase the remaining PRs before continuing. If anything fails, do not merge: comment on the PR with the exact error and whether it matches a known blocker in MAINTAINING.md. Never merge or approve a PR you authored, never bypass a rule, never close a PR unless its version is already in master. When all PRs are handled, run the same full check on the updated master. Also check for failed runs of the Publish workflow, human PRs waiting for review for more than 7 days, and new `npm audit` findings compared with MAINTAINING.md.
+>
+> Then post exactly one message, starting with one of these lines, followed by one bullet per PR or finding with links:
+>
+> 1. "✅ OK, here is what I did:" when every PR was merged and master passes all checks.
+> 2. "⚠️ Something went wrong:" when the routine itself could not complete (repo unreachable, checks impossible, unexpected error), with the error.
+> 3. "🙋 Action required from someone else:" when a human must act: a bump that fails and needs a decision, a publish waiting for approval, a human PR waiting for review. List what was merged anyway.
 
 Known blockers as of 2026-09-15: ESLint 10 (#100, #92) and TypeScript 7 (#74). Re-test them when `@n8n/node-cli` releases mention ESLint 10 or typescript-eslint announces TS 7 support.
 
