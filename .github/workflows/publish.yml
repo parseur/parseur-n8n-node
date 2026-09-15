@@ -66,6 +66,12 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
 
+    # Deployment gate: a member of the Parseur "devs" team must approve the run
+    # in the Actions UI before anything is published. The environment only
+    # accepts x.y.z tags, and the npm Trusted Publisher must list this
+    # environment name (npmjs.com -> package settings -> Trusted Publisher).
+    environment: npm-publish
+
     permissions:
       # Required to mint an OIDC token for npm provenance attestation.
       id-token: write

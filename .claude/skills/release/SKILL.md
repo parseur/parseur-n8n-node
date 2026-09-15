@@ -25,7 +25,7 @@ What `n8n-node release` does (via release-it): `npm run lint && npm run build` �
 
 ## After
 
-1. Tag push triggers `.github/workflows/publish.yml`: `gh run watch` / `gh run list --workflow publish.yml --limit 1`. In CI, `npm run release` runs lint, build and `npm publish` with provenance.
+1. Tag push triggers `.github/workflows/publish.yml`, which **waits for a deployment approval** on the `npm-publish` environment. Ask a `devs` team member (or the user) to approve it in the Actions UI (Review deployments → Approve and deploy); do not try to approve it yourself. Then `gh run watch`: in CI, `npm run release` runs lint, build and `npm publish` with provenance.
 2. Confirm on npm: `npm view n8n-nodes-parseur version` (may lag a minute). dev@parseur.com receives npm's email.
 3. `npx @n8n/scan-community-package@beta n8n-nodes-parseur` against the new version. Errors → fix → patch release.
 4. `gh release view x.y.z` shows the changelog. n8n reviews the version and may email dev@parseur.com; it then appears in the n8n Creator portal.

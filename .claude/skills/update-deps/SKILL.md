@@ -31,7 +31,7 @@ Human runbook: MAINTAINING.md § 1. Keep both in sync.
    find dist -type f | sort | diff - /tmp/dist-before.txt
    ```
    Roll back a failed bump with `git reset --hard <sha before merge>` then `npm ci --ignore-scripts`.
-4. Push `master` (or open a PR if the user wants review). Pushed merge commits mark the Dependabot PRs as merged. PRs whose target version is already in the lockfile: comment "superseded" and close.
+4. `master` is protected (PR + one approval + green CI; admins can bypass). Prefer merging Dependabot PRs on GitHub once CI is green: `gh pr merge <n> --merge --admin` when no second reviewer is around (the bypass is logged). Local multi-PR merges must be pushed as a PR branch, not directly to `master`. PRs whose target version is already in the lockfile: comment "superseded" and close.
 5. `npm audit` for the summary; mention what remains and where it comes from (`npm ls <pkg>`).
 
 ## Gotchas
