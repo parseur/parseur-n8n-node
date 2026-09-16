@@ -59,11 +59,11 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
-    "@n8n/node-cli": "^0.47.1",
+    "@n8n/node-cli": "^0.48.2",
     "@types/node": "^22.20.2",
     "@vitest/coverage-v8": "5.0.1",
     "eslint": "9.29.0",
-    "n8n-workflow": "2.28.4",
+    "n8n-workflow": "2.39.1",
     "prettier": "3.9.6",
     "release-it": "^21.0.2",
     "typescript": "6.0.3",
