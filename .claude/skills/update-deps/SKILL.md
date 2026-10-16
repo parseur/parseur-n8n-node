@@ -39,5 +39,5 @@ Human runbook: MAINTAINING.md § 1. Keep both in sync.
 - `n8n-node lint` runs the project's local `eslint` binary, so the root `eslint` version matters even though node-cli nests its own.
 - After a `@n8n/node-cli` bump, read the lint output for new rules; fix code rather than disabling rules.
 - vitest's peer range on `@types/node` lets npm drift to the newest major on a fresh install; keep `@types/node` pinned to the `.nvmrc` major.
-- Security alerts: n8n packages pin transitive deps exactly. If `npm audit fix` does not help, bump `@n8n/node-cli` and `n8n-workflow` to the newest `stable` release that pins the patched version. Never add `overrides` (lint rule `no-overrides-field`). `stream-json` 1.9.1 under `@n8n/backend-common` has no usable fix (2026-10-16); see MAINTAINING.md § 1.6.
+- Security alerts: n8n packages pin transitive deps exactly. If `npm audit fix` does not help, bump `@n8n/node-cli` and `n8n-workflow` to the newest `stable` release that pins the patched version. Never add `overrides` (lint rule `no-overrides-field`). Known unfixable list and the daily security alerts routine: MAINTAINING.md § 1. Dismiss only `development`-scope alerts, as `tolerable_risk`, with a comment naming the pinning parent.
 - `npm install` prints "vulnerabilities" for transitive LangChain deps under `@n8n/ai-node-sdk`; that is expected noise, not a regression.
