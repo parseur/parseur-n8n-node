@@ -44,6 +44,9 @@ Dependabot opens PRs weekly; CI runs on each. Once a week (or when notified):
 4. **Major bumps:** check the PR body for breaking changes, then run the full local check on the branch. If tooling breaks, do not merge: comment on the PR with the exact error and what upstream change would unblock it, and leave it open (or close it and add an `ignore` rule in `dependabot.yml` when the block is structural, as done for ESLint majors).
 5. **`@n8n/node-cli` bumps** deserve a look at `npm run lint` output: new rules may flag existing code. Fix the code rather than disabling rules; n8n's cloud verification runs the same rules.
 6. **Security advisories:** `npm audit`. Most findings are transitive under `@n8n/node-cli` (its AI SDK pulls LangChain). If `npm audit fix` (never `--force`) does not fix them and the vulnerable package is not in our runtime dependency tree (we have none: everything is `devDependencies`), note it and move on.
+   - n8n packages pin transitive versions exactly (e.g. `n8n-workflow` pins `axios`). When `npm audit fix` cannot help, check whether a newer `@n8n/node-cli` and `n8n-workflow` (dist-tag `stable`) pin the patched version: `npm view n8n-workflow@stable dependencies.axios`. Dependabot group PRs can lag behind the latest release.
+   - Do not use npm `overrides`: the `@n8n/community-nodes/no-overrides-field` lint rule rejects them.
+   - Known unfixable (2026-10-16): `stream-json` 1.9.1, pinned by `@n8n/backend-common` (latest 1.43.5 too). The fix is only in 3.6.0, which is ESM-only and breaks `require("stream-json/Assembler")`. Dev-only, not shipped.
 7. Compare `dist/` before/after (`find dist -type f | sort`) when a toolchain package changes; the file list must not change.
 
 ### The Monday routine
