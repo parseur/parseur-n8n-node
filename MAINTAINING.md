@@ -46,7 +46,8 @@ Dependabot opens PRs weekly; CI runs on each. Once a week (or when notified):
 6. **Security advisories:** `npm audit`. Most findings are transitive under `@n8n/node-cli` (its AI SDK pulls LangChain). If `npm audit fix` (never `--force`) does not fix them and the vulnerable package is not in our runtime dependency tree (we have none: everything is `devDependencies`), note it and move on.
    - n8n packages pin transitive versions exactly (e.g. `n8n-workflow` pins `axios`). When `npm audit fix` cannot help, check whether a newer `@n8n/node-cli` and `n8n-workflow` (dist-tag `stable`) pin the patched version: `npm view n8n-workflow@stable dependencies.axios`. Dependabot group PRs can lag behind the latest release.
    - Do not use npm `overrides`: the `@n8n/community-nodes/no-overrides-field` lint rule rejects them.
-   - Known unfixable (2026-10-16): `stream-json` 1.9.1, pinned by `@n8n/backend-common` (latest 1.43.5 too). The fix is only in 3.6.0, which is ESM-only and breaks `require("stream-json/Assembler")`. Dev-only, not shipped.
+   - Known unfixable (2026-10-16), alerts dismissed as tolerable risk: `stream-json` 1.9.1, pinned by `@n8n/backend-common` (latest 1.43.5 too); the fix is only in 3.6.0, which is ESM-only and breaks `require("stream-json/Assembler")`. `handlebars` 4.7.9, pinned by `@n8n/node-cli` 0.52.5; fix in 4.7.10. Both dev-only, not shipped.
+   - The daily security alerts routine (below) applies these rules automatically.
 7. Compare `dist/` before/after (`find dist -type f | sort`) when a toolchain package changes; the file list must not change.
 
 ### The Monday routine
@@ -62,6 +63,16 @@ Dependabot opens its PRs on Monday at 08:00 Europe/Paris. At 09:00, Claude Tag r
 > 1. "✅ OK, here is what I did:" when every PR was merged and master passes all checks.
 > 2. "⚠️ Something went wrong:" when the routine itself could not complete (repo unreachable, checks impossible, unexpected error), with the error.
 > 3. "🙋 Action required from someone else:" when a human must act: approve the publish of the patch release you just tagged (link to the Publish run), a bump that fails and needs a decision, a minor or major release that seems warranted, a human PR waiting for review. List what was merged anyway.
+
+### The daily security alerts routine
+
+Oneleet mirrors the GitHub Dependabot alerts of this repo. A fixed or dismissed alert stops alerting there. So that nobody has to act on them by hand, Claude Tag runs this routine every weekday at 11:00 Europe/Paris in `#n8n-node` (the prompt is stored in Slack; this is the reference copy, keep them identical):
+
+> @Claude every weekday at 11:00 Europe/Paris, handle the open Dependabot security alerts of the GitHub repository parseur/parseur-n8n-node. Post in this channel only when a human must act or something failed; otherwise stay silent.
+>
+> Procedure: clone the repo and follow CLAUDE.md, MAINTAINING.md section 1 (item 6) and .claude/skills/update-deps/SKILL.md. List the open alerts with `gh api repos/parseur/parseur-n8n-node/dependabot/alerts --paginate -q '.[] | select(.state=="open")'`. If there are none, stop. On a branch from master, for each vulnerable package: (1) run `npm audit fix --ignore-scripts` (never `--force`); (2) if the package is still vulnerable, find the parent that pins it with `npm ls <package> --all`; if it comes from `@n8n/node-cli` or `n8n-workflow`, check whether the newest `@n8n/node-cli` and `n8n-workflow@stable` pin a patched version, and if so bump `@n8n/node-cli` and the `n8n-workflow` devDependency to them (never touch the `n8n-workflow: "*"` peer dependency). If an open Dependabot PR already makes the fix, handle that PR with the update-deps rules instead. If you changed something, run `npm ci && npm run lint && npm run typecheck && npm test && npm run build` and check that the `find dist -type f | sort` list did not change; if all of this passes, push the branch and open one PR titled "fix(deps): security alerts #<numbers>" that lists each alert and how it is fixed. For each alert that still has no fix you can reach without npm `overrides` (the `no-overrides-field` lint rule forbids them), without `--force` and without a major bump that breaks the checks: if its scope is `development`, dismiss it with `gh api -X PATCH repos/parseur/parseur-n8n-node/dependabot/alerts/<n> -f state=dismissed -f dismissed_reason=tolerable_risk -f dismissed_comment="<parent that pins it and why it cannot be fixed; dev-only, not shipped>"` (280 characters at most) and add it to the "Known unfixable" list in MAINTAINING.md in the same PR. Never dismiss an alert whose scope is `runtime`; report it instead. On Mondays also check the alerts you dismissed as `tolerable_risk`: if a fix is now reachable, apply it in the same way. Never approve or merge a PR you authored, never bypass a rule.
+>
+> When a human must act, post exactly one message that starts with "🙋 Action required from someone else:" and has one bullet per item with links (a PR to approve, a runtime alert). When the routine could not complete, start with "⚠️ Something went wrong:" and give the error.
 
 Known blockers as of 2026-09-15: ESLint 10 (#100, #92) and TypeScript 7 (#74). Re-test them when `@n8n/node-cli` releases mention ESLint 10 or typescript-eslint announces TS 7 support.
 
